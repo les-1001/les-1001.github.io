@@ -1,18 +1,18 @@
 ---
-title: "TODO: Orbital project name"
-summary: "TODO: one sentence on what the app does and who it's for."
+title: "PacePilot"
+summary: "Tracks every assessment across your NUS modules and predicts your final grade before finals week."
 status: live
 order: 2
 role: "NUS Orbital 2026, TODO: level (Gemini / Apollo) and team size"
-stack: ["TODO: e.g. React", "TODO: e.g. Node.js", Vercel, Railway]
+stack: [Next.js, "TODO: backend, e.g. Node.js", Vercel, Railway]
 links:
   - label: Open the app
-    url: "https://TODO-your-app.vercel.app"
+    url: "https://nus-orbital.vercel.app/"
 ---
 
 ## What it does
 
-TODO: two or three sentences in plain words. What problem does it solve, and what can a visitor do in the first minute?
+PacePilot helps NUS students keep track of how they're doing in each module. You add your modules, and the assessments and their weights are filled in from NUSMods. As your scores come out, you enter them and PacePilot predicts your final grade. It also flags each module as On Track, Needs Attention or At Risk, so you know where to focus before finals.
 
 ## How it's built
 
