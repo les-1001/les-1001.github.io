@@ -1,0 +1,168 @@
+---
+import { getCollection, getEntry } from "astro:content";
+import Base from "../layouts/Base.astro";
+import LogList from "../components/LogList.astro";
+import { site } from "../site.config";
+import { formatDate, statusLabel } from "../lib/format";
+
+const projects = (await getCollection("projects")).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const log = (await getCollection("log")).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+const latest = log[0];
+const latestProject = latest ? await getEntry(latest.data.project) : undefined;
+
+const contact = [
+  site.email && { label: "Email", href: `mailto:${site.email}` },
+  site.github && { label: "GitHub", href: site.github },
+  site.linkedin && { label: "LinkedIn", href: site.linkedin },
+  site.cv && { label: "CV (PDF)", href: site.cv },
+].filter(Boolean) as { label: string; href: string }[];
+---
+
+<Base>
+  <section class="hero">
+    <h1 class="name">{site.name}</h1>
+    <p class="tagline">{site.tagline}</p>
+    <p class="contact">
+      {contact.map((c) => <a href={c.href}>{c.label}</a>)}
+    </p>
+  </section>
+
+  {
+    latest && latestProject && (
+      <a class="latest" href={`/log/${latest.id}/`}>
+        <span class="latest-meta">
+          Latest update, {formatDate(latest.data.date)}, on{" "}
+          {latestProject.data.title}
+        </span>
+        <span class="latest-title">{latest.data.title}</span>
+      </a>
+    )
+  }
+
+  <h2>Projects</h2>
+  <ul class="projects">
+    {
+      projects.map((p) => {
+        const updates = log.filter((e) => e.data.project.id === p.id).length;
+        return (
+          <li>
+            <div class="project-head">
+              <a class="project-title" href={`/projects/${p.id}/`}>
+                {p.data.title}
+              </a>
+              <span class={`status status-${p.data.status}`}>
+                {statusLabel[p.data.status]}
+              </span>
+            </div>
+            <p class="project-summary">{p.data.summary}</p>
+            <p class="project-meta">
+              {p.data.links.map((l) => (
+                <a href={l.url}>{l.label}</a>
+              ))}
+              {updates > 0 && (
+                <span class="muted">
+                  {updates} {updates === 1 ? "update" : "updates"}
+                </span>
+              )}
+            </p>
+          </li>
+        );
+      })
+    }
+  </ul>
+
+  <h2>Recent updates</h2>
+  <LogList entries={log.slice(0, 5)} />
+  {log.length > 5 && <p class="all-link"><a href="/log/">All updates</a></p>}
+</Base>
+
+<style>
+  .hero {
+    padding: 3.5rem 0 1.5rem;
+  }
+  .name {
+    font-size: clamp(2.6rem, 9vw, 4.6rem);
+    font-variation-settings: "wdth" 125;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 0.98;
+    margin: 0 0 1.1rem;
+  }
+  .tagline {
+    font-size: 1.2rem;
+    max-width: 34rem;
+    margin-bottom: 1rem;
+  }
+  .contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.25rem;
+  }
+  .latest {
+    display: block;
+    margin: 1.5rem 0 0;
+    padding: 1rem 1.15rem;
+    border-left: 3px solid var(--accent);
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .latest:hover .latest-title {
+    color: var(--accent);
+  }
+  .latest-meta {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 0.2rem;
+  }
+  .latest-title {
+    font-weight: 600;
+  }
+  .projects {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .projects li {
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .project-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.75rem;
+    margin-bottom: 0.3rem;
+  }
+  .project-title {
+    font-family: var(--display);
+    font-variation-settings: "wdth" 112;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .project-title:hover {
+    color: var(--accent);
+  }
+  .project-summary {
+    margin: 0 0 0.4rem;
+    max-width: 38rem;
+  }
+  .project-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1.1rem;
+    font-size: 0.92rem;
+    margin: 0;
+  }
+  .all-link {
+    margin-top: 1rem;
+  }
+</style>

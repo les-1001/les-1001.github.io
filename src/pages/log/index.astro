@@ -1,0 +1,26 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import LogList from "../../components/LogList.astro";
+
+const log = (await getCollection("log")).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+---
+
+<Base title="Log" description="Progress updates across all my projects.">
+  <h1 class="page-title">Log</h1>
+  <p class="muted intro">
+    Progress on my projects as it happens, including what didn't work.
+  </p>
+  <LogList entries={log} />
+</Base>
+
+<style>
+  .page-title {
+    margin-top: 2.5rem;
+  }
+  .intro {
+    margin-bottom: 2rem;
+  }
+</style>

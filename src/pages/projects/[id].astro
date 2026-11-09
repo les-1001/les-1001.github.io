@@ -1,0 +1,100 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import LogList from "../../components/LogList.astro";
+import { statusLabel } from "../../lib/format";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("projects");
+  return projects.map((project) => ({
+    params: { id: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+const updates = (await getCollection("log"))
+  .filter((e) => e.data.project.id === project.id)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const [first, ...rest] = project.data.links;
+---
+
+<Base title={project.data.title} description={project.data.summary}>
+  <article class="project">
+    <header>
+      <span class={`status status-${project.data.status}`}>
+        {statusLabel[project.data.status]}
+      </span>
+      <h1>{project.data.title}</h1>
+      <p class="summary">{project.data.summary}</p>
+      {project.data.role && <p class="muted role">{project.data.role}</p>}
+      {
+        project.data.stack.length > 0 && (
+          <ul class="stack" aria-label="Tools used">
+            {project.data.stack.map((s) => (
+              <li>{s}</li>
+            ))}
+          </ul>
+        )
+      }
+      {
+        first && (
+          <div class="button-row">
+            <a class="button primary" href={first.url}>
+              {first.label}
+            </a>
+            {rest.map((l) => (
+              <a class="button" href={l.url}>
+                {l.label}
+              </a>
+            ))}
+          </div>
+        )
+      }
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    <h2>Updates</h2>
+    <LogList entries={updates} showProject={false} />
+  </article>
+</Base>
+
+<style>
+  .project header {
+    padding: 2.5rem 0 2rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .project h1 {
+    font-size: clamp(2rem, 6vw, 2.9rem);
+    font-variation-settings: "wdth" 118;
+    font-weight: 800;
+    margin: 0.75rem 0 0.6rem;
+  }
+  .summary {
+    font-size: 1.15rem;
+    max-width: 36rem;
+  }
+  .role {
+    margin-top: -0.5rem;
+  }
+  .stack {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .stack li {
+    font-size: 0.82rem;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    color: var(--muted);
+  }
+</style>
