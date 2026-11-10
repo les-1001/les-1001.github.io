@@ -2,8 +2,9 @@
 import { getCollection, getEntry } from "astro:content";
 import Base from "../layouts/Base.astro";
 import LogList from "../components/LogList.astro";
+import ProjectDetail from "../components/ProjectDetail.astro";
 import { site } from "../site.config";
-import { formatDate, statusLabel } from "../lib/format";
+import { formatDate } from "../lib/format";
 
 const projects = (await getCollection("projects")).sort(
   (a, b) => a.data.order - b.data.order,
@@ -20,6 +21,12 @@ const contact = [
   site.linkedin && { label: "LinkedIn", href: site.linkedin },
   site.cv && { label: "CV (PDF)", href: site.cv },
 ].filter(Boolean) as { label: string; href: string }[];
+
+// One tab per project, each with that project's updates (newest first).
+const tabs = projects.map((p) => ({
+  project: p,
+  updates: log.filter((e) => e.data.project.id === p.id),
+}));
 ---
 
 <Base>
@@ -43,42 +50,111 @@ const contact = [
     )
   }
 
-  <h2>Projects</h2>
-  <ul class="projects">
+  <h2 id="projects">Projects</h2>
+  <div class="tabs" data-tabs>
+    {/* Hidden until the script runs. Without JavaScript every project
+        is shown one after another instead. */}
+    <div class="tablist" role="tablist" aria-label="Projects" hidden>
+      {
+        tabs.map(({ project: p }, i) => (
+          <button
+            type="button"
+            role="tab"
+            class="tab"
+            id={`tab-${p.id}`}
+            aria-controls={`project-${p.id}`}
+            aria-selected={i === 0 ? "true" : "false"}
+            tabindex={i === 0 ? 0 : -1}
+          >
+            <span class={`dot dot-${p.data.status}`} aria-hidden="true" />
+            {p.data.tabLabel ?? p.data.title}
+          </button>
+        ))
+      }
+    </div>
+
     {
-      projects.map((p) => {
-        const updates = log.filter((e) => e.data.project.id === p.id).length;
-        return (
-          <li>
-            <div class="project-head">
-              <a class="project-title" href={`/projects/${p.id}/`}>
-                {p.data.title}
-              </a>
-              <span class={`status status-${p.data.status}`}>
-                {statusLabel[p.data.status]}
-              </span>
-            </div>
-            <p class="project-summary">{p.data.summary}</p>
-            <p class="project-meta">
-              {p.data.links.map((l) => (
-                <a href={l.url}>{l.label}</a>
-              ))}
-              {updates > 0 && (
-                <span class="muted">
-                  {updates} {updates === 1 ? "update" : "updates"}
-                </span>
-              )}
-            </p>
-          </li>
-        );
-      })
+      tabs.map(({ project: p, updates }) => (
+        <section
+          class="panel"
+          id={`project-${p.id}`}
+          role="tabpanel"
+          aria-labelledby={`tab-${p.id}`}
+          tabindex="0"
+        >
+          <ProjectDetail project={p} headingLevel={3} />
+
+          <div class="panel-updates">
+            <h4>Recent updates</h4>
+            <LogList entries={updates.slice(0, 3)} showProject={false} />
+          </div>
+          <p class="panel-footer">
+            <a href={`/projects/${p.id}/`}>
+              Full project page
+              {updates.length > 0 &&
+                ` with all ${updates.length} ${updates.length === 1 ? "update" : "updates"}`}
+            </a>
+          </p>
+        </section>
+      ))
     }
-  </ul>
+  </div>
 
   <h2>Recent updates</h2>
   <LogList entries={log.slice(0, 5)} />
   {log.length > 5 && <p class="all-link"><a href="/log/">All updates</a></p>}
 </Base>
+
+<script>
+  // Accessible tabs: click or arrow keys to switch, and the URL hash
+  // (#project-<id>) remembers the open tab so it can be linked to.
+  for (const root of document.querySelectorAll<HTMLElement>("[data-tabs]")) {
+    const list = root.querySelector<HTMLElement>('[role="tablist"]');
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const panels = tabs.map((t) =>
+      document.getElementById(t.getAttribute("aria-controls") ?? ""),
+    );
+    if (!list || tabs.length === 0 || panels.some((p) => !p)) continue;
+
+    const select = (i: number, opts: { focus?: boolean; hash?: boolean } = {}) => {
+      tabs.forEach((tab, j) => {
+        const on = j === i;
+        tab.setAttribute("aria-selected", String(on));
+        tab.tabIndex = on ? 0 : -1;
+        panels[j]!.hidden = !on;
+      });
+      if (opts.focus) tabs[i].focus();
+      if (opts.hash) history.replaceState(null, "", `#${panels[i]!.id}`);
+    };
+
+    const fromHash = () => panels.findIndex((p) => `#${p!.id}` === location.hash);
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener("click", () => select(i, { hash: true }));
+      tab.addEventListener("keydown", (e) => {
+        const last = tabs.length - 1;
+        const next =
+          e.key === "ArrowRight" ? (i === last ? 0 : i + 1)
+          : e.key === "ArrowLeft" ? (i === 0 ? last : i - 1)
+          : e.key === "Home" ? 0
+          : e.key === "End" ? last
+          : -1;
+        if (next < 0) return;
+        e.preventDefault();
+        select(next, { focus: true, hash: true });
+      });
+    });
+
+    window.addEventListener("hashchange", () => {
+      const i = fromHash();
+      if (i >= 0) select(i);
+    });
+
+    list.hidden = false;
+    root.classList.add("is-enhanced");
+    select(Math.max(fromHash(), 0));
+  }
+</script>
 
 <style>
   .hero {
@@ -123,44 +199,85 @@ const contact = [
   .latest-title {
     font-weight: 600;
   }
-  .projects {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border-top: 1px solid var(--rule);
-  }
-  .projects li {
-    padding: 1.25rem 0;
+
+  /* Tabs */
+  .tablist {
+    display: flex;
+    gap: 0.25rem;
+    overflow-x: auto;
+    scrollbar-width: none;
     border-bottom: 1px solid var(--rule);
   }
-  .project-head {
-    display: flex;
+  .tablist[hidden] {
+    display: none;
+  }
+  .tablist::-webkit-scrollbar {
+    display: none;
+  }
+  .tab {
+    flex: none;
+    display: inline-flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 0.4rem 0.75rem;
-    margin-bottom: 0.3rem;
+    gap: 0.5rem;
+    padding: 0.7rem 0.95rem;
+    margin-bottom: -1px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: var(--muted);
+    font: 500 0.98rem/1.2 var(--body);
+    white-space: nowrap;
+    cursor: pointer;
   }
-  .project-title {
-    font-family: var(--display);
-    font-variation-settings: "wdth" 112;
-    font-size: 1.3rem;
-    font-weight: 700;
+  .tab:hover {
     color: var(--ink);
-    text-decoration: none;
   }
-  .project-title:hover {
-    color: var(--accent);
+  .tab[aria-selected="true"] {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
   }
-  .project-summary {
-    margin: 0 0 0.4rem;
-    max-width: 38rem;
+  .tab:focus-visible {
+    outline-offset: -2px;
   }
-  .project-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem 1.1rem;
-    font-size: 0.92rem;
-    margin: 0;
+  .dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--planned);
+  }
+  .dot-live {
+    background: var(--live);
+  }
+  .dot-in-progress {
+    background: var(--wip);
+  }
+  .dot-upcoming {
+    background: var(--soon);
+  }
+
+  /* Without JS the panels stack, each separated by a rule. */
+  .panel {
+    border-top: 1px solid var(--rule);
+  }
+  .is-enhanced .panel {
+    border-top: 0;
+  }
+  .panel:focus-visible {
+    outline-offset: 6px;
+  }
+  .panel-updates {
+    margin-top: 2rem;
+  }
+  .panel-updates h4 {
+    font-family: var(--display);
+    font-size: 1rem;
+    font-weight: 650;
+    margin: 0 0 0.75rem;
+  }
+  .panel-footer {
+    margin: 1.25rem 0 0;
+    padding-bottom: 1.5rem;
+    font-weight: 500;
   }
   .all-link {
     margin-top: 1rem;

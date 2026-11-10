@@ -8,7 +8,8 @@ const projects = defineCollection({
   schema: z.object({
     title: z.string(),
     summary: z.string(),
-    status: z.enum(["live", "in-progress", "planned"]),
+    status: z.enum(["live", "in-progress", "upcoming", "planned"]),
+    tabLabel: z.string().optional(), // short name for the home-page tab if the title is long
     order: z.number(), // smaller numbers show first
     role: z.string().optional(), // e.g. "NUS Orbital 2026, team of 2"
     stack: z.array(z.string()).default([]),

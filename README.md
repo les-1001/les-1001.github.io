@@ -31,7 +31,7 @@ You can do this from the GitHub website too: open `src/content/log/`, click **Ad
 
 ## Add a project
 
-Copy one of the files in `src/content/projects/`. `status` is `live`, `in-progress` or `planned`. `order` sets the position on the home page (smaller first). The first entry in `links` becomes the big button.
+Copy one of the files in `src/content/projects/`. `status` is `live`, `in-progress`, `upcoming` or `planned`. If the title is long, add a short `tabLabel` for the home-page tab. `order` sets the position on the home page (smaller first). The first entry in `links` becomes the big button.
 
 ## Preview locally (optional)
 

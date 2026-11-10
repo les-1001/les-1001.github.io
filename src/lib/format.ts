@@ -10,5 +10,6 @@ export function formatDate(d: Date): string {
 export const statusLabel = {
   live: "Live",
   "in-progress": "In progress",
+  upcoming: "Upcoming",
   planned: "Planned",
 } as const;

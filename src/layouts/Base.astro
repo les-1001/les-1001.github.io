@@ -80,6 +80,8 @@ const nav = [
     --wip-bg: #fbefd9;
     --planned: #5b6b79;
     --planned-bg: #e7ecf0;
+    --soon: #2747c9;
+    --soon-bg: #e4e9fb;
     --display: "Archivo Variable","Helvetica Neue", Arial, sans-serif;
     --body: "IBM Plex Sans", system-ui, sans-serif;
     --measure: 44rem;
@@ -99,6 +101,8 @@ const nav = [
       --wip-bg: #33260f;
       --planned: #93a3b1;
       --planned-bg: #1e2a35;
+      --soon: #8fa3ff;
+      --soon-bg: #1c2545;
     }
   }
   *,
@@ -261,6 +265,10 @@ const nav = [
   .status-in-progress {
     color: var(--wip);
     background: var(--wip-bg);
+  }
+  .status-upcoming {
+    color: var(--soon);
+    background: var(--soon-bg);
   }
   .status-planned {
     color: var(--planned);

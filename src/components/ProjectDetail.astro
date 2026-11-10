@@ -1,0 +1,113 @@
+---
+// The full write-up for one project: status, title, summary, role, stack,
+// link buttons and the Markdown body. Used on the project page (as the h1)
+// and inside each project tab on the home page (as an h3).
+import type { CollectionEntry } from "astro:content";
+import { render } from "astro:content";
+import { statusLabel } from "../lib/format";
+
+interface Props {
+  project: CollectionEntry<"projects">;
+  headingLevel?: 1 | 3;
+}
+const { project, headingLevel = 1 } = Astro.props;
+const { Content } = await render(project);
+const Heading = headingLevel === 1 ? "h1" : "h3";
+const [first, ...rest] = project.data.links;
+---
+
+<div class={`project-detail level-${headingLevel}`}>
+  <header class="detail-head">
+    <span class={`status status-${project.data.status}`}>
+      {statusLabel[project.data.status]}
+    </span>
+    <Heading class="detail-title">{project.data.title}</Heading>
+    <p class="summary">{project.data.summary}</p>
+    {project.data.role && <p class="muted role">{project.data.role}</p>}
+    {
+      project.data.stack.length > 0 && (
+        <ul class="stack" aria-label="Tools used">
+          {project.data.stack.map((s) => (
+            <li>{s}</li>
+          ))}
+        </ul>
+      )
+    }
+    {
+      first && (
+        <div class="button-row">
+          <a class="button primary" href={first.url}>
+            {first.label}
+          </a>
+          {rest.map((l) => (
+            <a class="button" href={l.url}>
+              {l.label}
+            </a>
+          ))}
+        </div>
+      )
+    }
+  </header>
+
+  <div class="prose detail-body">
+    <Content />
+  </div>
+</div>
+
+<style>
+  .detail-head {
+    border-bottom: 1px solid var(--rule);
+  }
+  .level-1 .detail-head {
+    padding: 2.5rem 0 2rem;
+    margin-bottom: 2rem;
+  }
+  .level-3 .detail-head {
+    padding: 1.75rem 0 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .detail-title {
+    font-weight: 800;
+    margin: 0.75rem 0 0.6rem;
+  }
+  .level-1 .detail-title {
+    font-size: clamp(2rem, 6vw, 2.9rem);
+    font-variation-settings: "wdth" 118;
+  }
+  .level-3 .detail-title {
+    font-size: clamp(1.5rem, 4.5vw, 2rem);
+    font-variation-settings: "wdth" 112;
+    letter-spacing: -0.015em;
+  }
+  .summary {
+    font-size: 1.15rem;
+    max-width: 36rem;
+  }
+  .role {
+    margin-top: -0.5rem;
+  }
+  .stack {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .stack li {
+    font-size: 0.82rem;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    color: var(--muted);
+  }
+  /* Inside a tab the write-up sits under the page's "Projects" h2,
+     so its own section headings step down a size. */
+  .level-3 .detail-body :global(h2) {
+    font-size: 1.15rem;
+    margin: 2rem 0 0.6rem;
+  }
+  .level-3 .detail-body :global(h2:first-child) {
+    margin-top: 0;
+  }
+</style>
