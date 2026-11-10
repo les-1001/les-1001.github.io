@@ -5,17 +5,18 @@
 // a group's tab).
 import type { CollectionEntry } from "astro:content";
 import { render } from "astro:content";
-import { statusLabel } from "../lib/format";
+import { formatPeriod, statusLabel } from "../lib/format";
 
 interface Props {
   project: CollectionEntry<"projects">;
   headingLevel?: 1 | 3 | 4;
   // Shown above the title on the project page, e.g. "Part of NUS Calibur…".
-  partOf?: { title: string; href: string };
+  partOf?: { title: string; href: string; period?: string };
 }
 const { project, headingLevel = 1, partOf } = Astro.props;
 const { Content } = await render(project);
 const Heading = `h${headingLevel}` as "h1" | "h3" | "h4";
+const period = formatPeriod(project.data.start, project.data.end);
 const [first, ...rest] = project.data.links;
 ---
 
@@ -25,12 +26,16 @@ const [first, ...rest] = project.data.links;
       partOf && (
         <p class="part-of">
           Part of <a href={partOf.href}>{partOf.title}</a>
+          {partOf.period && <span>, {partOf.period}</span>}
         </p>
       )
     }
-    <span class={`status status-${project.data.status}`}>
-      {statusLabel[project.data.status]}
-    </span>
+    <div class="meta-line">
+      <span class={`status status-${project.data.status}`}>
+        {statusLabel[project.data.status]}
+      </span>
+      {period && <span class="period">{period}</span>}
+    </div>
     <Heading class="detail-title">{project.data.title}</Heading>
     <p class="summary">{project.data.summary}</p>
     {project.data.role && <p class="muted role">{project.data.role}</p>}
@@ -94,6 +99,17 @@ const [first, ...rest] = project.data.links;
     font-size: clamp(1.35rem, 4vw, 1.7rem);
     font-variation-settings: "wdth" 108;
     letter-spacing: -0.01em;
+  }
+  .meta-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.75rem;
+  }
+  .period {
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
   }
   .part-of {
     font-size: 0.92rem;

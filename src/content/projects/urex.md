@@ -3,6 +3,8 @@ title: "Quantisation-Aware Distillation for Small-Object Detection on Edge Hardw
 tabLabel: "UREx research"
 summary: "Does a full-precision teacher model win back the small objects that 8-bit quantisation costs a real-time detector? I'm testing it with four training setups, all measured on an NVIDIA Jetson."
 status: upcoming
+start: "2026-12"
+end: "2027-05"
 order: 6
 role: "UREx (CDE2605R), NUS, Semester 2 AY2026/27. TODO: find a supervising professor"
 stack: [PyTorch, Ultralytics, TensorRT, ONNX Runtime, C++, NVIDIA Jetson, ESP32-P4]

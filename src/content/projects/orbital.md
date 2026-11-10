@@ -2,6 +2,8 @@
 title: "PacePilot"
 summary: "An academic planner for NUS students. It reads your module documents, predicts your final grades, plans your study week, and messages your deadlines to you on Telegram."
 status: live
+start: "2026-05"
+end: "2026-08"
 order: 5
 role: "NUS Orbital 2026, Artemis (highest level), team of 2"
 stack: [Next.js, TypeScript, FastAPI, Python, Supabase, XGBoost, Claude API, MicroPython, Raspberry Pi Pico 2 W, GitHub Actions]

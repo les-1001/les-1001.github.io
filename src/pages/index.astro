@@ -5,7 +5,7 @@ import Base from "../layouts/Base.astro";
 import LogList from "../components/LogList.astro";
 import ProjectPanel from "../components/ProjectPanel.astro";
 import { site } from "../site.config";
-import { formatDate, statusLabel } from "../lib/format";
+import { formatDate, formatPeriod, statusLabel } from "../lib/format";
 
 const byOrder = (a: { data: { order: number } }, b: { data: { order: number } }) =>
   a.data.order - b.data.order;
@@ -117,9 +117,16 @@ const tabInfo = (t: Tab) =>
           ) : (
             <>
               <header class="group-head">
-                <span class={`status status-${t.group.data.status}`}>
-                  {statusLabel[t.group.data.status]}
-                </span>
+                <div class="meta-line">
+                  <span class={`status status-${t.group.data.status}`}>
+                    {statusLabel[t.group.data.status]}
+                  </span>
+                  {formatPeriod(t.group.data.start, t.group.data.end) && (
+                    <span class="period">
+                      {formatPeriod(t.group.data.start, t.group.data.end)}
+                    </span>
+                  )}
+                </div>
                 <h3 class="group-title">{t.group.data.title}</h3>
                 <p class="group-summary">{t.group.data.summary}</p>
                 {t.group.data.role && <p class="muted group-role">{t.group.data.role}</p>}
@@ -336,6 +343,17 @@ const tabInfo = (t: Tab) =>
   /* Group header and its sub-tabs (pill style, to read as a second level) */
   .group-head {
     padding: 1.75rem 0 0;
+  }
+  .meta-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.75rem;
+  }
+  .period {
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
   }
   .group-title {
     font-size: clamp(1.5rem, 4.5vw, 2rem);

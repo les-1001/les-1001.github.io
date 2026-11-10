@@ -31,7 +31,7 @@ You can do this from the GitHub website too: open `src/content/log/`, click **Ad
 
 ## Add a project
 
-Copy one of the files in `src/content/projects/`. `status` is `live`, `in-progress`, `upcoming` or `planned`. If the title is long, add a short `tabLabel` for the home-page tab.
+Copy one of the files in `src/content/projects/`. `status` is `live`, `in-progress`, `upcoming` or `planned`. If the title is long, add a short `tabLabel` for the home-page tab. Add `start: "2026-05"` and `end: "2026-08"` for the duration shown next to the status. Leave out `end` and it shows "Present".
 
 To put several projects under one home-page tab (like NUS Calibur), add `group: calibur` to each project. The group's own title, summary and position live in `src/content/groups/calibur.md`. Inside the group, the projects' `order` sets the order of the sub-tabs. `order` sets the position on the home page (smaller first). The first entry in `links` becomes the big button.
 

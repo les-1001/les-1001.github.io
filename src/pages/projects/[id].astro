@@ -3,6 +3,7 @@ import { getCollection, getEntry } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import LogList from "../../components/LogList.astro";
 import ProjectDetail from "../../components/ProjectDetail.astro";
+import { formatPeriod } from "../../lib/format";
 
 export async function getStaticPaths() {
   const projects = await getCollection("projects");
@@ -23,7 +24,11 @@ const updates = (await getCollection("log"))
   <article class="project">
     <ProjectDetail
       project={project}
-      partOf={group && { title: group.data.title, href: `/#group-${group.id}` }}
+      partOf={group && {
+        title: group.data.title,
+        href: `/#group-${group.id}`,
+        period: formatPeriod(group.data.start, group.data.end),
+      }}
     />
 
     <h2>Updates</h2>

@@ -2,6 +2,7 @@
 title: Humanoid Mimic
 summary: Stand in front of your laptop webcam and a simulated Unitree G1 humanoid copies your movements in real time, entirely in your browser.
 status: in-progress
+start: "2026-10"
 order: 1
 role: Personal project, 2026–27
 stack: [PyTorch, ONNX Runtime Web, WebGPU, MuJoCo, three.js, SLURM]
