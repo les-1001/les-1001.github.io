@@ -1,14 +1,16 @@
 ---
 import { getCollection, getEntry } from "astro:content";
+import type { CollectionEntry } from "astro:content";
 import Base from "../layouts/Base.astro";
 import LogList from "../components/LogList.astro";
-import ProjectDetail from "../components/ProjectDetail.astro";
+import ProjectPanel from "../components/ProjectPanel.astro";
 import { site } from "../site.config";
-import { formatDate } from "../lib/format";
+import { formatDate, statusLabel } from "../lib/format";
 
-const projects = (await getCollection("projects")).sort(
-  (a, b) => a.data.order - b.data.order,
-);
+const byOrder = (a: { data: { order: number } }, b: { data: { order: number } }) =>
+  a.data.order - b.data.order;
+const projects = (await getCollection("projects")).sort(byOrder);
+const groups = (await getCollection("groups")).sort(byOrder);
 const log = (await getCollection("log")).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
@@ -22,11 +24,39 @@ const contact = [
   site.cv && { label: "CV (PDF)", href: site.cv },
 ].filter(Boolean) as { label: string; href: string }[];
 
-// One tab per project, each with that project's updates (newest first).
-const tabs = projects.map((p) => ({
-  project: p,
-  updates: log.filter((e) => e.data.project.id === p.id),
-}));
+const updatesFor = (p: CollectionEntry<"projects">) =>
+  log.filter((e) => e.data.project.id === p.id);
+
+// Top-level tabs: projects without a group, plus one tab per group
+// holding its projects as sub-tabs. Sorted by `order`.
+type Tab =
+  | { kind: "project"; key: string; order: number; project: CollectionEntry<"projects"> }
+  | {
+      kind: "group";
+      key: string;
+      order: number;
+      group: CollectionEntry<"groups">;
+      members: CollectionEntry<"projects">[];
+    };
+const tabs: Tab[] = [
+  ...projects
+    .filter((p) => !p.data.group)
+    .map((p) => ({ kind: "project" as const, key: `project-${p.id}`, order: p.data.order, project: p })),
+  ...groups
+    .map((g) => ({
+      kind: "group" as const,
+      key: `group-${g.id}`,
+      order: g.data.order,
+      group: g,
+      members: projects.filter((p) => p.data.group?.id === g.id),
+    }))
+    .filter((g) => g.members.length > 0),
+].sort((a, b) => a.order - b.order);
+
+const tabInfo = (t: Tab) =>
+  t.kind === "project"
+    ? { label: t.project.data.tabLabel ?? t.project.data.title, status: t.project.data.status }
+    : { label: t.group.data.tabLabel ?? t.group.data.title, status: t.group.data.status };
 ---
 
 <Base>
@@ -52,49 +82,84 @@ const tabs = projects.map((p) => ({
 
   <h2 id="projects">Projects</h2>
   <div class="tabs" data-tabs>
-    {/* Hidden until the script runs. Without JavaScript every project
-        is shown one after another instead. */}
+    {/* Tab buttons stay hidden until the script runs. Without JavaScript
+        every project is shown one after another instead. */}
     <div class="tablist" role="tablist" aria-label="Projects" hidden>
       {
-        tabs.map(({ project: p }, i) => (
+        tabs.map((t, i) => (
           <button
             type="button"
             role="tab"
             class="tab"
-            id={`tab-${p.id}`}
-            aria-controls={`project-${p.id}`}
+            id={`tab-${t.key}`}
+            aria-controls={t.key}
             aria-selected={i === 0 ? "true" : "false"}
             tabindex={i === 0 ? 0 : -1}
           >
-            <span class={`dot dot-${p.data.status}`} aria-hidden="true" />
-            {p.data.tabLabel ?? p.data.title}
+            <span class={`dot dot-${tabInfo(t).status}`} aria-hidden="true" />
+            {tabInfo(t).label}
           </button>
         ))
       }
     </div>
 
     {
-      tabs.map(({ project: p, updates }) => (
+      tabs.map((t) => (
         <section
           class="panel"
-          id={`project-${p.id}`}
+          id={t.key}
           role="tabpanel"
-          aria-labelledby={`tab-${p.id}`}
+          aria-labelledby={`tab-${t.key}`}
           tabindex="0"
         >
-          <ProjectDetail project={p} headingLevel={3} />
+          {t.kind === "project" ? (
+            <ProjectPanel project={t.project} updates={updatesFor(t.project)} headingLevel={3} />
+          ) : (
+            <>
+              <header class="group-head">
+                <span class={`status status-${t.group.data.status}`}>
+                  {statusLabel[t.group.data.status]}
+                </span>
+                <h3 class="group-title">{t.group.data.title}</h3>
+                <p class="group-summary">{t.group.data.summary}</p>
+                {t.group.data.role && <p class="muted group-role">{t.group.data.role}</p>}
+              </header>
 
-          <div class="panel-updates">
-            <h4>Recent updates</h4>
-            <LogList entries={updates.slice(0, 3)} showProject={false} />
-          </div>
-          <p class="panel-footer">
-            <a href={`/projects/${p.id}/`}>
-              Full project page
-              {updates.length > 0 &&
-                ` with all ${updates.length} ${updates.length === 1 ? "update" : "updates"}`}
-            </a>
-          </p>
+              <div class="tabs" data-tabs>
+                <div
+                  class="tablist sub"
+                  role="tablist"
+                  aria-label={`${t.group.data.title} projects`}
+                  hidden
+                >
+                  {t.members.map((p, i) => (
+                    <button
+                      type="button"
+                      role="tab"
+                      class="subtab"
+                      id={`tab-project-${p.id}`}
+                      aria-controls={`project-${p.id}`}
+                      aria-selected={i === 0 ? "true" : "false"}
+                      tabindex={i === 0 ? 0 : -1}
+                    >
+                      {p.data.tabLabel ?? p.data.title}
+                    </button>
+                  ))}
+                </div>
+                {t.members.map((p) => (
+                  <section
+                    class="panel subpanel"
+                    id={`project-${p.id}`}
+                    role="tabpanel"
+                    aria-labelledby={`tab-project-${p.id}`}
+                    tabindex="0"
+                  >
+                    <ProjectPanel project={p} updates={updatesFor(p)} headingLevel={4} />
+                  </section>
+                ))}
+              </div>
+            </>
+          )}
         </section>
       ))
     }
@@ -106,11 +171,17 @@ const tabs = projects.map((p) => ({
 </Base>
 
 <script>
-  // Accessible tabs: click or arrow keys to switch, and the URL hash
-  // (#project-<id>) remembers the open tab so it can be linked to.
+  // Accessible tabs, nestable: click or arrow keys to switch. The URL hash
+  // remembers the open tab, and a hash pointing at a sub-tab (for example
+  // #project-calibur-aim-tools) opens its group tab as well.
   for (const root of document.querySelectorAll<HTMLElement>("[data-tabs]")) {
-    const list = root.querySelector<HTMLElement>('[role="tablist"]');
-    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    // Only this level's elements, not those of a tab set nested inside it.
+    const own = <T extends Element>(selector: string) =>
+      [...root.querySelectorAll<T>(selector)].filter(
+        (el) => el.closest("[data-tabs]") === root,
+      );
+    const list = own<HTMLElement>('[role="tablist"]')[0];
+    const tabs = own<HTMLButtonElement>('[role="tab"]');
     const panels = tabs.map((t) =>
       document.getElementById(t.getAttribute("aria-controls") ?? ""),
     );
@@ -127,7 +198,13 @@ const tabs = projects.map((p) => ({
       if (opts.hash) history.replaceState(null, "", `#${panels[i]!.id}`);
     };
 
-    const fromHash = () => panels.findIndex((p) => `#${p!.id}` === location.hash);
+    const fromHash = () => {
+      const id = decodeURIComponent(location.hash.slice(1));
+      if (!id) return -1;
+      return panels.findIndex(
+        (p) => p!.id === id || p!.querySelector(`#${CSS.escape(id)}`) !== null,
+      );
+    };
 
     tabs.forEach((tab, i) => {
       tab.addEventListener("click", () => select(i, { hash: true }));
@@ -200,7 +277,7 @@ const tabs = projects.map((p) => ({
     font-weight: 600;
   }
 
-  /* Tabs */
+  /* Top-level tabs */
   .tablist {
     display: flex;
     gap: 0.25rem;
@@ -236,7 +313,8 @@ const tabs = projects.map((p) => ({
     color: var(--ink);
     border-bottom-color: var(--accent);
   }
-  .tab:focus-visible {
+  .tab:focus-visible,
+  .subtab:focus-visible {
     outline-offset: -2px;
   }
   .dot {
@@ -255,29 +333,59 @@ const tabs = projects.map((p) => ({
     background: var(--soon);
   }
 
+  /* Group header and its sub-tabs (pill style, to read as a second level) */
+  .group-head {
+    padding: 1.75rem 0 0;
+  }
+  .group-title {
+    font-size: clamp(1.5rem, 4.5vw, 2rem);
+    font-variation-settings: "wdth" 112;
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    margin: 0.75rem 0 0.6rem;
+  }
+  .group-summary {
+    font-size: 1.1rem;
+    max-width: 36rem;
+  }
+  .group-role {
+    margin-top: -0.5rem;
+  }
+  .tablist.sub {
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    border-bottom: 0;
+    padding: 0.5rem 0 0.25rem;
+  }
+  .subtab {
+    flex: none;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--muted);
+    font: 500 0.9rem/1.2 var(--body);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .subtab:hover {
+    color: var(--ink);
+    border-color: var(--muted);
+  }
+  .subtab[aria-selected="true"] {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
   /* Without JS the panels stack, each separated by a rule. */
   .panel {
     border-top: 1px solid var(--rule);
   }
-  .is-enhanced .panel {
+  .is-enhanced > .panel {
     border-top: 0;
   }
   .panel:focus-visible {
     outline-offset: 6px;
-  }
-  .panel-updates {
-    margin-top: 2rem;
-  }
-  .panel-updates h4 {
-    font-family: var(--display);
-    font-size: 1rem;
-    font-weight: 650;
-    margin: 0 0 0.75rem;
-  }
-  .panel-footer {
-    margin: 1.25rem 0 0;
-    padding-bottom: 1.5rem;
-    font-weight: 500;
   }
   .all-link {
     margin-top: 1rem;

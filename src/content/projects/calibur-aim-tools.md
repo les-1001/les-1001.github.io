@@ -2,6 +2,7 @@
 title: Aim Training and Replay Tools
 summary: Tools that let a robotics team test and tune its aimbot without a live match. They replay recorded footage through the robot's real code, run a stationary-spin trainer, and measure where bullets actually hit from a phone's slow-motion video.
 status: in-progress
+group: calibur
 tabLabel: Aim tools
 order: 4
 role: NUS Calibur Robotics (RoboMaster), vision team, 2026

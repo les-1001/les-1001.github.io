@@ -1,5 +1,5 @@
 ---
-import { getCollection } from "astro:content";
+import { getCollection, getEntry } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import LogList from "../../components/LogList.astro";
 import ProjectDetail from "../../components/ProjectDetail.astro";
@@ -13,6 +13,7 @@ export async function getStaticPaths() {
 }
 
 const { project } = Astro.props;
+const group = project.data.group ? await getEntry(project.data.group) : undefined;
 const updates = (await getCollection("log"))
   .filter((e) => e.data.project.id === project.id)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -20,7 +21,10 @@ const updates = (await getCollection("log"))
 
 <Base title={project.data.title} description={project.data.summary}>
   <article class="project">
-    <ProjectDetail project={project} />
+    <ProjectDetail
+      project={project}
+      partOf={group && { title: group.data.title, href: `/#group-${group.id}` }}
+    />
 
     <h2>Updates</h2>
     <LogList entries={updates} showProject={false} />

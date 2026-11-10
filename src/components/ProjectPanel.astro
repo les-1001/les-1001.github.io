@@ -1,0 +1,48 @@
+---
+// What a project's tab shows on the home page: the full write-up,
+// its 3 newest updates and a link to the project's own page.
+import type { CollectionEntry } from "astro:content";
+import LogList from "./LogList.astro";
+import ProjectDetail from "./ProjectDetail.astro";
+
+interface Props {
+  project: CollectionEntry<"projects">;
+  updates: CollectionEntry<"log">[];
+  headingLevel: 3 | 4; // 4 when the project sits inside a group tab
+}
+const { project, updates, headingLevel } = Astro.props;
+const UpdatesHeading = headingLevel === 3 ? "h4" : "h5";
+---
+
+<ProjectDetail project={project} headingLevel={headingLevel} />
+
+<div class="panel-updates">
+  <UpdatesHeading class="updates-title">Recent updates</UpdatesHeading>
+  <LogList entries={updates.slice(0, 3)} showProject={false} />
+</div>
+<p class="panel-footer">
+  <a href={`/projects/${project.id}/`}>
+    Full project page
+    {
+      updates.length > 0 &&
+        ` with all ${updates.length} ${updates.length === 1 ? "update" : "updates"}`
+    }
+  </a>
+</p>
+
+<style>
+  .panel-updates {
+    margin-top: 2rem;
+  }
+  .updates-title {
+    font-family: var(--display);
+    font-size: 1rem;
+    font-weight: 650;
+    margin: 0 0 0.75rem;
+  }
+  .panel-footer {
+    margin: 1.25rem 0 0;
+    padding-bottom: 1.5rem;
+    font-weight: 500;
+  }
+</style>

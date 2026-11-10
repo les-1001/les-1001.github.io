@@ -70,6 +70,29 @@ My teammate designed the interface and built the grade-prediction model, the Goo
 
 ## Screenshots
 
-TODO: add 2 or 3 screenshots so the page still works if the backend is asleep. Save them in `public/images/orbital/` and add them like this:
+From a demo account.
 
-![Home screen](/images/orbital/home.png)
+<figure>
+  <img src="/images/orbital/dashboard.png" alt="Dashboard screen of PacePilot" width="2742" height="1634" loading="lazy" decoding="async">
+  <figcaption>Dashboard: predicted GPA, each module flagged At Risk, Needs Attention or On Track, with its predicted grade, weekly study hours and the average needed for an A.</figcaption>
+</figure>
+
+<figure>
+  <img src="/images/orbital/gpa.png" alt="GPA/CAP calculator screen of PacePilot" width="2742" height="1634" loading="lazy" decoding="async">
+  <figcaption>GPA/CAP calculator: cumulative CAP, degree classification and the S/U allowance, with arrows showing which modules are worth S/U-ing.</figcaption>
+</figure>
+
+<figure>
+  <img src="/images/orbital/tasks.png" alt="Tasks screen of PacePilot" width="2732" height="1618" loading="lazy" decoding="async">
+  <figcaption>Tasks: every assessment across modules with its weight, released scores and overdue items. The Telegram button links the reminder bot.</figcaption>
+</figure>
+
+<figure>
+  <img src="/images/orbital/plan.png" alt="Plan screen of PacePilot" width="2746" height="1618" loading="lazy" decoding="async">
+  <figcaption>Plan: the career guide recommends NUS modules for a chosen career path.</figcaption>
+</figure>
+
+<figure>
+  <img src="/images/orbital/schedule.png" alt="Schedule screen of PacePilot" width="2738" height="1634" loading="lazy" decoding="async">
+  <figcaption>Schedule: the weekly study planner, which can read free slots from Google Calendar and gives more time to riskier modules.</figcaption>
+</figure>

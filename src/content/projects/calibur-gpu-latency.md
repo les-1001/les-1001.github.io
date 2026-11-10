@@ -2,6 +2,7 @@
 title: GPU Preprocessing on a Competition Robot
 summary: I moved the robot's image preprocessing onto the Jetson GPU. On the running robot, frames processed per second doubled and camera-to-command latency fell by 46%, with detections bit-identical to the old path.
 status: in-progress
+group: calibur
 tabLabel: GPU preprocessing
 order: 2
 role: NUS Calibur Robotics (RoboMaster), vision team, 2026

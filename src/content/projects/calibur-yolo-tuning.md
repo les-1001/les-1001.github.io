@@ -2,6 +2,7 @@
 title: Tuning a Keypoint Detector on a GPU Cluster
 summary: I tuned the hyperparameters and backbone of a YOLO11-pose model that finds the corners of armor plates. It cut keypoint loss by 17.5% and raised box mAP by 8.6%, and a seed study showed where further tuning stops helping.
 status: in-progress
+group: calibur
 tabLabel: YOLO tuning
 order: 3
 role: NUS Calibur Robotics (RoboMaster), vision team, 2026

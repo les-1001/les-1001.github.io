@@ -2,13 +2,30 @@ import { defineCollection, reference } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
 
+const status = z.enum(["live", "in-progress", "upcoming", "planned"]);
+
+// Optional: bundle several projects under one home-page tab.
+// One Markdown file per group in src/content/groups/ (front matter only).
+const groups = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/groups" }),
+  schema: z.object({
+    title: z.string(),
+    tabLabel: z.string().optional(),
+    summary: z.string(),
+    status,
+    order: z.number(), // position among the home-page tabs
+    role: z.string().optional(),
+  }),
+});
+
 // One Markdown file per project in src/content/projects/.
 const projects = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/projects" }),
   schema: z.object({
     title: z.string(),
     summary: z.string(),
-    status: z.enum(["live", "in-progress", "upcoming", "planned"]),
+    status,
+    group: reference("groups").optional(), // file name in src/content/groups/, without .md
     tabLabel: z.string().optional(), // short name for the home-page tab if the title is long
     order: z.number(), // smaller numbers show first
     role: z.string().optional(), // e.g. "NUS Orbital 2026, team of 2"
@@ -30,4 +47,4 @@ const log = defineCollection({
   }),
 });
 
-export const collections = { projects, log };
+export const collections = { groups, projects, log };
