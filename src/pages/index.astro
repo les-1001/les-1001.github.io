@@ -96,8 +96,11 @@ const tabInfo = (t: Tab) =>
             aria-selected={i === 0 ? "true" : "false"}
             tabindex={i === 0 ? 0 : -1}
           >
-            <span class={`dot dot-${tabInfo(t).status}`} aria-hidden="true" />
-            {tabInfo(t).label}
+            <span class="tab-name">{tabInfo(t).label}</span>
+            <span class={`tab-status tone-${tabInfo(t).status}`}>
+              <span class={`status-icon is-${tabInfo(t).status}`} aria-hidden="true" />
+              {statusLabel[tabInfo(t).status]}
+            </span>
           </button>
         ))
       }
@@ -301,8 +304,9 @@ const tabInfo = (t: Tab) =>
   .tab {
     flex: none;
     display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
     padding: 0.7rem 0.95rem;
     margin-bottom: -1px;
     border: 0;
@@ -324,20 +328,12 @@ const tabInfo = (t: Tab) =>
   .subtab:focus-visible {
     outline-offset: -2px;
   }
-  .dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background: var(--planned);
-  }
-  .dot-live {
-    background: var(--live);
-  }
-  .dot-in-progress {
-    background: var(--wip);
-  }
-  .dot-upcoming {
-    background: var(--soon);
+  .tab-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 500;
   }
 
   /* Group header and its sub-tabs (pill style, to read as a second level) */

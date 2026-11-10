@@ -249,8 +249,47 @@ const nav = [
     color: var(--muted);
   }
 
+  /* Status is shown three ways so it never relies on colour alone:
+     a text label, an icon shape and a colour.
+     Live = filled circle, In progress = half-filled,
+     Upcoming = hollow ring, Planned = dashed ring. */
+  .tone-live {
+    color: var(--live);
+  }
+  .tone-in-progress {
+    color: var(--wip);
+  }
+  .tone-upcoming {
+    color: var(--soon);
+  }
+  .tone-planned {
+    color: var(--planned);
+  }
+  .status-icon,
+  .status::before {
+    content: "";
+    flex: none;
+    width: 0.62em;
+    height: 0.62em;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+  }
+  .is-live,
+  .status-live::before {
+    background: currentColor;
+  }
+  .is-in-progress,
+  .status-in-progress::before {
+    background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+  }
+  .is-planned,
+  .status-planned::before {
+    border-style: dashed;
+  }
   .status {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
     font-size: 0.78rem;
     font-weight: 500;
     line-height: 1;
