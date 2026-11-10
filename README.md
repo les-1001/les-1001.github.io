@@ -25,7 +25,7 @@ project: humanoid-mimic
 What happened, what it means, what's next.
 ```
 
-`project` must match a file name in `src/content/projects/` (without `.md`): `humanoid-mimic`, `orbital` or `urex`. Commit and push. That's it.
+`project` must match a file name in `src/content/projects/` (without `.md`): `humanoid-mimic`, `calibur-gpu-latency`, `calibur-yolo-tuning`, `calibur-aim-tools`, `orbital` or `urex`. Commit and push. That's it.
 
 You can do this from the GitHub website too: open `src/content/log/`, click **Add file > Create new file**, paste the template, and commit.
 
